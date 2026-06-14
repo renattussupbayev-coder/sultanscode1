@@ -4,7 +4,7 @@ import time
 
 st.set_page_config(page_title="Brawl Memory", layout="wide")
 
-st.image("https://i.imgur.com/4Y6X2g1.png", use_container_width=True)
+CARD_BACK = "https://i.imgur.com/4Y6X2g1.png"
 
 BRAWLERS = [
     {"id": 16000000, "name": "Shelly"},
