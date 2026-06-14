@@ -193,7 +193,7 @@ function Index() {
 
         {won && (
           <div className="mb-6 rounded-lg border border-primary/40 bg-primary/10 p-4 text-center">
-            <p className="text-lg font-bold">🏆 You won in {moves} moves & {seconds}s!</p>
+            <p className="text-lg font-bold"> You won in {moves} moves & {seconds}s!</p>
             <Button className="mt-3" onClick={() => reset()}>
               Play again
             </Button>
