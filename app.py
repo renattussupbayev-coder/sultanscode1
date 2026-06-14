@@ -4,14 +4,8 @@ import time
 
 st.set_page_config(page_title="Brawl Memory", layout="wide")
 
-# -----------------------------
-# LOGO (рубашка)
-# -----------------------------
 CARD_BACK = "https://upload.wikimedia.org/wikipedia/en/5/5c/Brawl_Stars_logo.png"
 
-# -----------------------------
-# DATA
-# -----------------------------
 BRAWLERS = [
     {"id": 16000000, "name": "Shelly"},
     {"id": 16000001, "name": "Colt"},
@@ -27,11 +21,10 @@ BRAWLERS = [
     {"id": 16000011, "name": "Mortis"},
 ]
 
-DIFFICULTY = {"Easy": 6, "Medium": 8, "Hard": 12}
+DIFF = {"Easy": 6, "Medium": 8, "Hard": 12}
 
-
-def img(id):
-    return f"https://cdn.brawlify.com/brawlers/borderless/{id}.png"
+def img(i):
+    return f"https://cdn.brawlify.com/brawlers/borderless/{i}.png"
 
 
 # -----------------------------
@@ -53,18 +46,15 @@ if "resolve_time" not in st.session_state:
     st.session_state.resolve_time = None
 
 
-# -----------------------------
-# GAME
-# -----------------------------
-def build_deck(n):
-    pick = random.sample(BRAWLERS, n)
-    deck = pick * 2
-    random.shuffle(deck)
-    return deck
+def build(n):
+    p = random.sample(BRAWLERS, n)
+    d = p * 2
+    random.shuffle(d)
+    return d
 
 
-def reset(diff):
-    st.session_state.cards = build_deck(DIFFICULTY[diff])
+def reset():
+    st.session_state.cards = build(6)
     st.session_state.selected = []
     st.session_state.matched = set()
     st.session_state.moves = 0
@@ -72,16 +62,16 @@ def reset(diff):
 
 
 if not st.session_state.cards:
-    reset("Medium")
+    reset()
 
 
 # -----------------------------
-# CHECK LOGIC
+# FLIP LOGIC
 # -----------------------------
 if st.session_state.resolve_time:
     if time.time() >= st.session_state.resolve_time:
-
         a, b = st.session_state.selected
+
         st.session_state.moves += 1
 
         if st.session_state.cards[a]["id"] == st.session_state.cards[b]["id"]:
@@ -90,13 +80,9 @@ if st.session_state.resolve_time:
 
         st.session_state.selected = []
         st.session_state.resolve_time = None
-
         st.rerun()
 
 
-# -----------------------------
-# CLICK
-# -----------------------------
 def click(i):
     if i in st.session_state.matched:
         return
@@ -112,27 +98,101 @@ def click(i):
 
 
 # -----------------------------
+# CSS FLIP
+# -----------------------------
+st.markdown("""
+<style>
+
+.card {
+  width: 120px;
+  height: 120px;
+  perspective: 1000px;
+  margin: auto;
+}
+
+.inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.6s;
+  transform-style: preserve-3d;
+}
+
+.flipped {
+  transform: rotateY(180deg);
+}
+
+.front, .back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  border-radius: 12px;
+}
+
+.front {
+  background: linear-gradient(135deg, #7c3aed, #2563eb);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:white;
+  font-weight:bold;
+  font-size:24px;
+}
+
+.back {
+  transform: rotateY(180deg);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  background:white;
+}
+
+.back img {
+  width:80px;
+  height:80px;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
+
+# -----------------------------
 # UI
 # -----------------------------
-st.title("🎮 Brawl Memory")
-
+st.title("🎮 Brawl Memory (FLIP VERSION)")
 st.metric("🎯 Moves", st.session_state.moves)
 
-cols = 4
-grid = st.columns(cols)
+cols = st.columns(4)
 
-for i, card in enumerate(st.session_state.cards):
-    col = grid[i % cols]
+for i, c in enumerate(st.session_state.cards):
 
-    is_open = i in st.session_state.selected or i in st.session_state.matched
+    open_card = i in st.session_state.selected or i in st.session_state.matched
+    flipped = "flipped" if open_card else ""
 
-    with col:
-        if is_open:
-            st.image(img(card["id"]), width=120)
-            st.caption(card["name"])
-        else:
-            st.image(CARD_BACK, width=120)
+    html = f"""
+    <div class="card">
+      <div class="inner {flipped}">
+        <div class="front">?</div>
+        <div class="back">
+          <img src="{img(c['id'])}">
+          <div>{c['name']}</div>
+        </div>
+      </div>
+    </div>
+    """
 
-            if st.button("Select", key=f"c{i}"):
-                click(i)
-                st.rerun()
+    with cols[i % 4]:
+        if st.button(" ", key=f"b{i}"):
+            click(i)
+            st.rerun()
+
+        st.markdown(html, unsafe_allow_html=True)
+
+
+# -----------------------------
+# WIN
+# -----------------------------
+if len(st.session_state.matched) == len(st.session_state.cards):
+    st.success(f"🏆 You won in {st.session_state.moves} moves!")
