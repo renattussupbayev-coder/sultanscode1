@@ -24,7 +24,7 @@ BRAWLERS = [
 DIFF = {"Easy": 6, "Medium": 8, "Hard": 12}
 
 def img(i):
-    return f"https://i.imgur.com/{i}.png"
+    return f"https://cdn.brawlify.com/brawlers/borderless/{i}.png"
 
 
 # -----------------------------
