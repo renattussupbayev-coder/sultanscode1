@@ -180,10 +180,10 @@ function Index() {
             ))}
           </div>
           <div className="flex items-center gap-4 text-sm font-medium">
-            <span>⏱ {seconds}s</span>
-            <span>🎯 {moves} moves</span>
+            <span> {seconds}s</span>
+            <span> {moves} moves</span>
             <span>
-              ✅ {matchedPairs}/{totalPairs}
+               {matchedPairs}/{totalPairs}
             </span>
             <Button size="sm" variant="secondary" onClick={() => reset()}>
               Restart
