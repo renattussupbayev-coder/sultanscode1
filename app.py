@@ -202,7 +202,7 @@ function Index() {
 
         {!ready ? (
           <div className="flex h-64 items-center justify-center text-muted-foreground">
-            Loading brawlers…
+            Loading brawlers
           </div>
         ) : (
           <div className={cn("grid gap-3", gridCols)}>
