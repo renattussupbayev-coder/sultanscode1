@@ -22,14 +22,14 @@ BRAWLERS = [
     {"id": 16000011, "name": "Mortis"},
 ]
 
-DIFFICULTIES = {
+DIFFICULTY = {
     "Easy": 6,
     "Medium": 8,
     "Hard": 12,
 }
 
-def portrait_url(brawler_id):
-    return f"https://cdn.brawlify.com/brawlers/borderless/{brawler_id}.png"
+def img_url(id):
+    return f"https://cdn.brawlify.com/brawlers/borderless/{id}.png"
 
 
 # -----------------------------
@@ -50,26 +50,26 @@ if "moves" not in st.session_state:
 if "difficulty" not in st.session_state:
     st.session_state.difficulty = "Medium"
 
-if "check_pending" not in st.session_state:
-    st.session_state.check_pending = False
+if "resolve_time" not in st.session_state:
+    st.session_state.resolve_time = None
 
 
 # -----------------------------
-# GAME SETUP
+# GAME LOGIC
 # -----------------------------
-def build_deck(pairs):
-    picked = random.sample(BRAWLERS, pairs)
-    deck = picked * 2
+def build_deck(n_pairs):
+    chosen = random.sample(BRAWLERS, n_pairs)
+    deck = chosen * 2
     random.shuffle(deck)
     return deck
 
 
 def reset_game(diff):
-    st.session_state.cards = build_deck(DIFFICULTIES[diff])
+    st.session_state.cards = build_deck(DIFFICULTY[diff])
     st.session_state.selected = []
     st.session_state.matched = set()
     st.session_state.moves = 0
-    st.session_state.check_pending = False
+    st.session_state.resolve_time = None
     st.session_state.difficulty = diff
 
 
@@ -78,47 +78,49 @@ if not st.session_state.cards:
 
 
 # -----------------------------
-# CHECK LOGIC (ВАЖНО)
+# RESOLVE LOGIC (ВАЖНО)
 # -----------------------------
-if st.session_state.check_pending:
-    a, b = st.session_state.selected
+if st.session_state.resolve_time is not None:
+    if time.time() >= st.session_state.resolve_time:
 
-    st.session_state.moves += 1
+        a, b = st.session_state.selected
+        st.session_state.moves += 1
 
-    if st.session_state.cards[a]["id"] == st.session_state.cards[b]["id"]:
-        st.session_state.matched.add(a)
-        st.session_state.matched.add(b)
+        if st.session_state.cards[a]["id"] == st.session_state.cards[b]["id"]:
+            st.session_state.matched.add(a)
+            st.session_state.matched.add(b)
+
         st.session_state.selected = []
-    else:
-        # просто очищаем после rerun (без sleep)
-        st.session_state.selected = []
+        st.session_state.resolve_time = None
 
-    st.session_state.check_pending = False
-    st.rerun()
+        st.rerun()
 
 
 # -----------------------------
-# UI
+# UI HEADER
 # -----------------------------
-st.title("🎮 Brawl Memory (Fixed Streamlit Version)")
+st.title("🎮 Brawl Memory")
 
-diff = st.selectbox("Difficulty", list(DIFFICULTIES.keys()), index=list(DIFFICULTIES.keys()).index(st.session_state.difficulty))
+diff = st.selectbox(
+    "Difficulty",
+    list(DIFFICULTY.keys()),
+    index=list(DIFFICULTY.keys()).index(st.session_state.difficulty)
+)
 
 if st.button("🔄 Restart"):
     reset_game(diff)
     st.rerun()
 
+st.metric("🎯 Moves", st.session_state.moves)
+st.metric("✅ Matches", len(st.session_state.matched) // 2)
+
 st.divider()
 
-col1, col2 = st.columns(2)
-col1.metric("🎯 Moves", st.session_state.moves)
-col2.metric("✅ Matches", len(st.session_state.matched) // 2)
-
 
 # -----------------------------
-# CLICK HANDLER
+# CLICK
 # -----------------------------
-def select_card(i):
+def select(i):
     if i in st.session_state.matched:
         return
 
@@ -131,13 +133,14 @@ def select_card(i):
     st.session_state.selected.append(i)
 
     if len(st.session_state.selected) == 2:
-        st.session_state.check_pending = True
+        # даём время увидеть вторую карту
+        st.session_state.resolve_time = time.time() + 0.8
 
 
 # -----------------------------
-# RENDER GRID
+# GRID
 # -----------------------------
-cols = 4 if DIFFICULTIES[st.session_state.difficulty] <= 8 else 6
+cols = 4 if DIFFICULTY[st.session_state.difficulty] <= 8 else 6
 grid = st.columns(cols)
 
 for i, card in enumerate(st.session_state.cards):
@@ -147,16 +150,16 @@ for i, card in enumerate(st.session_state.cards):
 
     with col:
         if is_open:
-            st.image(portrait_url(card["id"]), width=120)
+            st.image(img_url(card["id"]), width=120)
             st.caption(card["name"])
         else:
-            if st.button("❓", key=f"card_{i}"):
-                select_card(i)
+            if st.button("❓", key=f"c{i}"):
+                select(i)
                 st.rerun()
 
 
 # -----------------------------
-# WIN CONDITION
+# WIN
 # -----------------------------
 if len(st.session_state.matched) == len(st.session_state.cards):
     st.success(f"🏆 You won in {st.session_state.moves} moves!")
