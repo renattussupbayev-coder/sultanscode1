@@ -5,6 +5,11 @@ import time
 st.set_page_config(page_title="Brawl Memory", layout="wide")
 
 # -----------------------------
+# LOGO (рубашка карты)
+# -----------------------------
+BRAWL_LOGO = "https://upload.wikimedia.org/wikipedia/en/5/5c/Brawl_Stars_logo.png"
+
+# -----------------------------
 # DATA
 # -----------------------------
 BRAWLERS = [
@@ -28,12 +33,12 @@ DIFFICULTY = {
     "Hard": 12,
 }
 
-def img_url(id):
-    return f"https://cdn.brawlify.com/brawlers/borderless/{id}.png"
+def img_url(brawler_id):
+    return f"https://cdn.brawlify.com/brawlers/borderless/{brawler_id}.png"
 
 
 # -----------------------------
-# STATE INIT
+# STATE
 # -----------------------------
 if "cards" not in st.session_state:
     st.session_state.cards = []
@@ -55,7 +60,7 @@ if "resolve_time" not in st.session_state:
 
 
 # -----------------------------
-# GAME LOGIC
+# GAME SETUP
 # -----------------------------
 def build_deck(n_pairs):
     chosen = random.sample(BRAWLERS, n_pairs)
@@ -78,7 +83,7 @@ if not st.session_state.cards:
 
 
 # -----------------------------
-# RESOLVE LOGIC (ВАЖНО)
+# RESOLVE LOGIC
 # -----------------------------
 if st.session_state.resolve_time is not None:
     if time.time() >= st.session_state.resolve_time:
@@ -97,7 +102,7 @@ if st.session_state.resolve_time is not None:
 
 
 # -----------------------------
-# UI HEADER
+# UI
 # -----------------------------
 st.title("🎮 Brawl Memory")
 
@@ -112,13 +117,13 @@ if st.button("🔄 Restart"):
     st.rerun()
 
 st.metric("🎯 Moves", st.session_state.moves)
-st.metric("✅ Matches", len(st.session_state.matched) // 2)
+st.metric("🏆 Matches", len(st.session_state.matched) // 2)
 
 st.divider()
 
 
 # -----------------------------
-# CLICK
+# CLICK LOGIC
 # -----------------------------
 def select(i):
     if i in st.session_state.matched:
@@ -133,12 +138,11 @@ def select(i):
     st.session_state.selected.append(i)
 
     if len(st.session_state.selected) == 2:
-        # даём время увидеть вторую карту
         st.session_state.resolve_time = time.time() + 0.8
 
 
 # -----------------------------
-# GRID
+# RENDER GRID
 # -----------------------------
 cols = 4 if DIFFICULTY[st.session_state.difficulty] <= 8 else 6
 grid = st.columns(cols)
@@ -153,13 +157,16 @@ for i, card in enumerate(st.session_state.cards):
             st.image(img_url(card["id"]), width=120)
             st.caption(card["name"])
         else:
-            if st.button("❓", key=f"c{i}"):
+            # 🎮 ЛОГОТИП вместо ❓
+            if st.button(" ", key=f"card_{i}"):
                 select(i)
                 st.rerun()
 
+            st.image(BRAWL_LOGO, width=80)
+
 
 # -----------------------------
-# WIN
+# WIN CHECK
 # -----------------------------
 if len(st.session_state.matched) == len(st.session_state.cards):
     st.success(f"🏆 You won in {st.session_state.moves} moves!")
