@@ -4,7 +4,7 @@ import time
 
 st.set_page_config(page_title="Brawl Memory", layout="wide")
 
-CARD_BACK = "https://upload.wikimedia.org/wikipedia/en/5/5c/Brawl_Stars_logo.png"
+CARD_BACK = "https://i.imgur.com/6QZ9X1Q.png"
 
 BRAWLERS = [
     {"id": 16000000, "name": "Shelly"},
